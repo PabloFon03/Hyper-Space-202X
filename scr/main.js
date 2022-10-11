@@ -85,7 +85,7 @@ function tick() {
 
   // Get Delta Time
   let dt = clk.getDelta();
-  // console.log(1 / dt);
+  console.log(1 / dt);
 
   console.log(input.GetHorizontalAxis());
 
@@ -104,8 +104,8 @@ function tick() {
   while (entityQueue[entityQueue.length - 1].z > -25) { entityQueue.push(new THREE.Vector3(1, entityQueue[entityQueue.length - 1].y + 60, entityQueue[entityQueue.length - 1].z - 1)); }
 
   // Update Player
-  player.Update(input.GetHorizontalAxis(), dt);
-  
+  player.Update(input.GetHorizontalAxis(), input.PressingBoost(), input.PressingBrakes(), dt);
+
   // Draw Scene
   Draw();
 
