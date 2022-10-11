@@ -12,7 +12,7 @@ export class Player {
         this.maxSpeed = 300;
         this.boostSpeed = 1200;
         this.boostPeriod = 0.1;
-        this.boostCooldown = 0.5;
+        this.boostCooldown = 0.1;
 
         // Variables
         this.speed = 0;
@@ -44,7 +44,7 @@ export class Player {
                 this.boostTimer = -this.boostCooldown;
             }
             // Update Boost Timer / Cooldown
-            else { this.boostTimer = MoveTowards(this.boostTimer, 0, _dt); }
+            else if (this.boostTimer >= -0.05 || !_boost) { this.boostTimer = MoveTowards(this.boostTimer, 0, _dt); }
         }
         else if (_boost && _xInput != 0) {
             // Apply Boost
