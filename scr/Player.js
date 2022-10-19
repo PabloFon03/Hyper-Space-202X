@@ -11,7 +11,7 @@ export class Player {
         this.minSpeed = 5;
         this.maxSpeed = 300;
         this.boostSpeed = 1200;
-        this.boostPeriod = 0.1;
+        this.boostPeriod = 0.05;
         this.boostCooldown = 0.1;
 
         // Variables

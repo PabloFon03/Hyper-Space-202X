@@ -1,4 +1,5 @@
 import * as THREE from '../node_modules/three/build/three.module.js';
+import { CreateEnum } from './EnumUtils.js';
 import { InputManager } from './InputManager.js';
 import { Pipe } from './PipeUtils.js';
 import { Player } from './Player.js';
@@ -36,6 +37,16 @@ for (let i = 0; i < maxLines; i++) {
   scene.add(linePool[i]);
 }
 
+// Text Pool
+let textCount = 0;
+const maxText = 10;
+const textPool = [maxText];
+for (let i = 0; i < maxText; i++) {
+  textPool[i] = new THREE.Line();
+  textPool[i].visible = false;
+  scene.add(textPool[i]);
+}
+
 function DrawLine(_position, _zRotation, _scale, _geometry, _material) {
   if (lineCount < maxLines || true) {
     linePool[lineCount].position.copy(_position);
@@ -58,60 +69,116 @@ function ResetLinePool() {
   lineCount = 0;
 }
 
+function GetPlayerWinZ(_t) { return -1.5 * Math.pow(_t, 2) + 1.25 * _t + 4; }
+
 const pipe = new Pipe();
 const entityQueue = [];
 const player = new Player();
 
+const States = CreateEnum([
+  "MainMenu",
+  "StartUp",
+  "Playing",
+  "StageCleared"
+]);
+let currentState = States.Playing;
+let stepCounter = 0;
+let stepTimer = 0;
+
+function Update(_dt) {
+  switch (currentState) {
+
+    case States.MainMenu:
+      switch (stepCounter) {
+        // Wait For User Input
+        case 0:
+          if (input.PressingBrakes()) {
+            stepTimer = 0;
+            stepCounter = 1;
+          }
+          break;
+        // Set Up Gameplay State
+        case 16:
+          stepTimer += _dt;
+          if (stepTimer >= 0.75) {
+            currentState = States.Playing;
+            stepCounter = 0;
+            stepTimer -= 0.75;
+          }
+          break;
+        // Flash Text
+        default:
+          stepTimer += _dt;
+          if (stepTimer >= 0.05) {
+            stepCounter++;
+            stepTimer -= 0.05;
+          }
+          break;
+      }
+      break;
+
+    case States.Playing:
+      switch (stepCounter) {
+        case 0:
+          // Update Pipe
+          pipe.UpdatePipe(_dt);
+          // Update Entities
+          for (let i = 0; i < entityQueue.length; i++) { entityQueue[i].z += pipe.GetScrollSpeed() * _dt; }
+          // Remove Out Of Bounds Entities
+          for (let i = entityQueue.length - 1; i >= 0; i--) { if (entityQueue[i].z > 5) { entityQueue.splice(i, 1); } }
+
+          if (entityQueue.length == 0) { entityQueue.push(new THREE.Vector3(1, 30, 4.5)); }
+          while (entityQueue[entityQueue.length - 1].z > -25) { entityQueue.push(new THREE.Vector3(1, entityQueue[entityQueue.length - 1].y + 60, entityQueue[entityQueue.length - 1].z - 1)); }
+          // Update Player
+          player.Update(input.GetHorizontalAxis(), input.PressingBoost(), input.PressingBrakes(), _dt);
+          // Collision Checks
+          for (let i = entityQueue.length - 1; i >= 0; i--) {
+            if (Math.abs(entityQueue[i].z - 4) < 0.5) {
+              entityQueue.splice(i, 1);
+            }
+          }
+          break;
+      }
+      break;
+
+  }
+};
+
 function Draw() {
+  switch (currentState) {
 
-  // Draw Pipe
-  pipe.DrawPipe(DrawLine);
+    case States.Playing:
+      switch (stepCounter) {
+        case 0:
+          // Draw Pipe
+          pipe.DrawPipe(DrawLine);
+          // Draw Entities
+          for (let i = 0; i < entityQueue.length; i++) { pipe.DrawStar(entityQueue[i].y, entityQueue[i].z, DrawLine); }
+          for (let i = 0; i < entityQueue.length; i++) { pipe.DrawCoin(entityQueue[i].y, entityQueue[i].z + 3, DrawLine); }
+          // Draw Player
+          pipe.DrawPlayer(player.GetAngle(), 4, DrawLine);
+          // Render Scene
+          renderer.render(scene, camera);
+          break;
+      }
+      break;
 
-  // Draw Entities
-  for (let i = 0; i < entityQueue.length; i++) { pipe.DrawStar(entityQueue[i].y, entityQueue[i].z, DrawLine); }
-  for (let i = 0; i < entityQueue.length; i++) { pipe.DrawCoin(entityQueue[i].y, entityQueue[i].z + 3, DrawLine); }
-
-  // Draw Player
-  pipe.DrawPlayer(player.GetAngle(), 4, DrawLine);
-
-  // Render Scene
-  renderer.render(scene, camera);
-
-}
+  }
+};
 
 function tick() {
-
+  // Set Function Callback
   requestAnimationFrame(tick);
-
   // Get Delta Time
   let dt = clk.getDelta();
-  console.log(1 / dt);
-
-  console.log(input.GetHorizontalAxis());
-
+  // Adjust Maximum Time Step
   if (dt > 0.15) { dt = 0.15; }
-
-  // Update Pipe
-  pipe.UpdatePipe(dt);
-
-  // Update Tunnel Entities
-  for (let i = 0; i < entityQueue.length; i++) { entityQueue[i].z += pipe.GetScrollSpeed() * dt; }
-
-  // Remove Out Of Bounds Entities
-  for (let i = entityQueue.length - 1; i >= 0; i--) { if (entityQueue[i].z > 5) { entityQueue.splice(i, 1); } }
-
-  if (entityQueue.length == 0) { entityQueue.push(new THREE.Vector3(1, 30, 4.5)); }
-  while (entityQueue[entityQueue.length - 1].z > -25) { entityQueue.push(new THREE.Vector3(1, entityQueue[entityQueue.length - 1].y + 60, entityQueue[entityQueue.length - 1].z - 1)); }
-
-  // Update Player
-  player.Update(input.GetHorizontalAxis(), input.PressingBoost(), input.PressingBrakes(), dt);
-
+  // Update Scene
+  Update(dt);
   // Draw Scene
   Draw();
-
   // Reset Line Pool
   ResetLinePool();
-
 };
 
 tick();

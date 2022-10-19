@@ -2,6 +2,7 @@ body {
     /* remove margins and scroll bars */
     margin: 0;
     overflow: hidden;
+    background-color: black;
 }
 
 #scene-container {
