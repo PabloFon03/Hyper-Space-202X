@@ -77,23 +77,26 @@ const pipe = new Pipe();
 const entityQueue = [];
 const player = new Player();
 
+// Add Coin To Entity Queue
 function AddCoin(_angle, _z) {
   entityQueue.push(new THREE.Vector3(0, _angle, _z));
   spawnedCoins++;
 }
+
+// Add Spike To Entity Queue
 function AddSpike(_angle, _z) { entityQueue.push(new THREE.Vector3(1, _angle, _z)); }
 
 function GenerateStage() {
   let zOffset = 25;
   let angleOffset = 0;
-  for (let a = 0; a < 10; a++) {
+  for (let a = 0; a < 1; a++) {
     if (a > 0) {
       let offsetFactor = RandomInt(5, 17);
       zOffset += offsetFactor;
-      angleOffset += 60 * offsetFactor * Math.random() * RandomSign();
+      angleOffset += 45 * offsetFactor * Math.random() * RandomSign();
     }
     let obstacleId = RandomInt(0, 2);
-    switch (1) {
+    switch (obstacleId) {
       case 0:
         {
           let rowCount = RandomInt(2, 5);
@@ -102,24 +105,26 @@ function GenerateStage() {
             for (let j = 0; j < coinCount; j++) { AddCoin(angleOffset, -(j + zOffset)); }
             if (i < rowCount - 1) {
               zOffset += coinCount + RandomInt(3, 8);
-              angleOffset += RandomInt(0, 3) * 30 * RandomSign();
+              angleOffset += RandomInt(0, 5) > 0 ? RandomInt(1, 4) * 15 * RandomSign() : 0;
             }
+            else { zOffset += coinCount; }
           }
         }
         break;
       case 1:
         {
-          let rowCount = RandomInt(2, 5);
+          let rowCount = RandomInt(3, 8);
           for (let i = 0; i < rowCount; i++) {
-            let coinCount = RandomInt(3, 7);
+            let coinCount = RandomInt(4, 10);
             for (let j = 0; j < coinCount; j++) {
               if (j == 0 || j == coinCount - 1) { AddCoin(angleOffset, -(j + zOffset)); }
               else { for (let k = -1; k <= 1; k += 2) { AddCoin(15 * k + angleOffset, -(j + zOffset)); } }
             }
             if (i < rowCount - 1) {
-              zOffset += coinCount + RandomInt(3, 8);
-              angleOffset += RandomInt(0, 3) * 45 * RandomSign();
+              zOffset += coinCount + RandomInt(5, 10);
+              angleOffset += RandomInt(0, 5) > 0 ? RandomInt(1, 4) * 20 * RandomSign() : 0;
             }
+            else { zOffset += coinCount; }
           }
         }
         break;
@@ -221,8 +226,19 @@ function Update(_dt) {
               }
             }
           }
+          else {
+            currentState = States.StageCleared;
+            stepTimer = -5;
+          }
           break;
       }
+      break;
+
+    case States.StageCleared:
+      // Update Pipe
+      pipe.UpdatePipe(_dt);
+      stepTimer += 2.5 * _dt;
+      if (stepTimer >= 5) { }
       break;
 
   }
@@ -245,13 +261,22 @@ function Draw() {
           }
           // Draw Player
           pipe.DrawPlayer(player.GetAngle(), 4, DrawLine);
-          // Render Scene
-          renderer.render(scene, camera);
           break;
       }
       break;
 
+    case States.StageCleared:
+      // Draw Pipe
+      pipe.DrawPipe(DrawLine);
+      // Draw Player
+      pipe.DrawPlayer(player.GetAngle(), stepTimer >= 0 ? GetPlayerWinZ(stepTimer) : player.GetAngle(), DrawLine);
+      break;
+
   }
+
+  // Render Scene
+  renderer.render(scene, camera);
+
 };
 
 function tick() {
