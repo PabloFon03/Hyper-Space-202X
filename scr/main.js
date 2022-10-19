@@ -244,7 +244,12 @@ function Update(_dt) {
       player.Update(0, false, false, _dt);
       // Update State Timer
       stepTimer += 2.5 * _dt;
-      if (stepTimer >= 5) { }
+      if (stepTimer >= 5) {
+        stageIndex++;
+        currentState = States.Playing;
+        stepCounter = 0;
+        stepTimer -= 5;
+      }
       break;
 
   }
