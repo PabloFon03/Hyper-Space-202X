@@ -198,20 +198,22 @@ function Update(_dt) {
         case 0:
           // Update Pipe
           pipe.UpdatePipe(_dt);
+          // Update Player
+          player.Update(input.GetHorizontalAxis(), input.PressingBoost(), input.PressingBrakes(), _dt);
           // Update Entities
           for (let i = 0; i < entityQueue.length; i++) { entityQueue[i].z += pipe.GetScrollSpeed() * _dt; }
           // Remove Out Of Bounds Entities
           for (let i = entityQueue.length - 1; i >= 0; i--) { if (entityQueue[i].z > 5) { entityQueue.splice(i, 1); } }
           if (entityQueue.length > 0) {
-            // Update Player
-            player.Update(input.GetHorizontalAxis(), input.PressingBoost(), input.PressingBrakes(), _dt);
             // Collision Checks
             let playerCheckPos = new THREE.Vector3(Math.sin(player.GetAngle() * Math.PI / 180), Math.cos(player.GetAngle() * Math.PI / 180), 4);
             for (let i = entityQueue.length - 1; i >= 0; i--) {
-              if (playerCheckPos.distanceTo(new THREE.Vector3(Math.sin(entityQueue[i].y * Math.PI / 180), Math.cos(entityQueue[i].y * Math.PI / 180), entityQueue[i].z)) < (entityQueue[i].x == 1 ? 0.25 : 0.5)) {
+              if (Math.abs(entityQueue[i].z - 4) <= 0.25 && playerCheckPos.distanceTo(new THREE.Vector3(Math.sin(entityQueue[i].y * Math.PI / 180), Math.cos(entityQueue[i].y * Math.PI / 180), entityQueue[i].z)) < (entityQueue[i].x == 1 ? 0.25 : 0.5)) {
+                // Hit Spike
                 if (entityQueue[i].x == 1) {
                   currentState = States.GameOver;
                 }
+                // Hit Coin
                 else {
                   collectedCoins++;
                   entityQueue.splice(i, 1);
