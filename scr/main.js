@@ -1,6 +1,7 @@
 import * as THREE from '../node_modules/three/build/three.module.js';
 import { CreateEnum } from './EnumUtils.js';
 import { InputManager } from './InputManager.js';
+import { RandomInt, RandomSign } from './MathUtils.js';
 import { Pipe } from './PipeUtils.js';
 import { Player } from './Player.js';
 // import { Text } from 'troika-three-text';
@@ -49,7 +50,7 @@ for (let i = 0; i < maxText; i++) {
 }
 
 function DrawLine(_position, _zRotation, _scale, _geometry, _material) {
-  if (lineCount < maxLines || true) {
+  if (lineCount < maxLines) {
     linePool[lineCount].position.copy(_position);
     linePool[lineCount].rotateZ(_zRotation * Math.PI / 180);
     linePool[lineCount].scale.copy(_scale);
@@ -79,19 +80,41 @@ const player = new Player();
 function GenerateStage() {
   let zOffset = 25;
   let angleOffset = 0;
-  let obstacleId = RandomInt(0, 2);
-  switch (obstacleId) {
-    case 0:
-      break;
-    case 1:
-      for (let i = 0; i < 48; i++) {
-        entityQueue.push(new THREE.Vector3(0, 60 * i + angleOffset, -(i + zOffset)));
-        entityQueue.push(new THREE.Vector3(1, 60 * i + angleOffset, -(i + 3 + zOffset)));
-      }
-      break;
-    default:
-      console.log("Error! Obstacle pattern not defined for case ", obstacleId);
-      break;
+  for (let a = 0; a < 10; a++) {
+    if (a > 0) {
+      let offsetFactor = RandomInt(8, 30);
+      zOffset += offsetFactor;
+      angleOffset += 60 * offsetFactor * Math.random() * RandomSign();
+    }
+    let obstacleId = RandomInt(0, 2);
+    switch (1) {
+      case 0:
+        {
+          let rowCount = RandomInt(2, 5);
+          for (let i = 0; i < rowCount; i++) {
+            let coinCount = RandomInt(3, 7);
+            for (let j = 0; j < coinCount; j++) { entityQueue.push(new THREE.Vector3(0, angleOffset, -(j + zOffset))); }
+            if (i < rowCount - 1) {
+              zOffset += coinCount + RandomInt(3, 8);
+              angleOffset += RandomInt(0, 3) * 30 * RandomSign();
+            }
+          }
+        }
+        break;
+      case 1:
+        {
+          let length = 10;
+          for (let i = 0; i < length; i++) {
+            entityQueue.push(new THREE.Vector3(0, 60 * i + angleOffset, -(i + zOffset)));
+            entityQueue.push(new THREE.Vector3(1, 60 * i + angleOffset, -(i + 3 + zOffset)));
+          }
+          zOffset += 6 * length;
+        }
+        break;
+      default:
+        console.log("Error! Obstacle pattern not defined for case ", obstacleId);
+        break;
+    }
   }
 }
 
@@ -189,8 +212,10 @@ function Draw() {
           pipe.DrawPipe(DrawLine);
           // Draw Entities
           for (let i = 0; i < entityQueue.length; i++) {
-            if (entityQueue[i].x == 1) { pipe.DrawStar(entityQueue[i].y, entityQueue[i].z, DrawLine); }
-            else { pipe.DrawCoin(entityQueue[i].y, entityQueue[i].z, DrawLine); }
+            if (entityQueue[i].z >= -25) {
+              if (entityQueue[i].x == 1) { pipe.DrawStar(entityQueue[i].y, entityQueue[i].z, DrawLine); }
+              else { pipe.DrawCoin(entityQueue[i].y, entityQueue[i].z, DrawLine); }
+            }
           }
           // Draw Player
           pipe.DrawPlayer(player.GetAngle(), 4, DrawLine);
