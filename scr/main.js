@@ -77,12 +77,18 @@ const pipe = new Pipe();
 const entityQueue = [];
 const player = new Player();
 
+function AddCoin(_angle, _z) {
+  entityQueue.push(new THREE.Vector3(0, _angle, _z));
+  spawnedCoins++;
+}
+function AddSpike(_angle, _z) { entityQueue.push(new THREE.Vector3(1, _angle, _z)); }
+
 function GenerateStage() {
   let zOffset = 25;
   let angleOffset = 0;
   for (let a = 0; a < 10; a++) {
     if (a > 0) {
-      let offsetFactor = RandomInt(8, 30);
+      let offsetFactor = RandomInt(5, 17);
       zOffset += offsetFactor;
       angleOffset += 60 * offsetFactor * Math.random() * RandomSign();
     }
@@ -93,7 +99,7 @@ function GenerateStage() {
           let rowCount = RandomInt(2, 5);
           for (let i = 0; i < rowCount; i++) {
             let coinCount = RandomInt(3, 7);
-            for (let j = 0; j < coinCount; j++) { entityQueue.push(new THREE.Vector3(0, angleOffset, -(j + zOffset))); }
+            for (let j = 0; j < coinCount; j++) { AddCoin(angleOffset, -(j + zOffset)); }
             if (i < rowCount - 1) {
               zOffset += coinCount + RandomInt(3, 8);
               angleOffset += RandomInt(0, 3) * 30 * RandomSign();
@@ -103,12 +109,30 @@ function GenerateStage() {
         break;
       case 1:
         {
-          let length = 10;
-          for (let i = 0; i < length; i++) {
-            entityQueue.push(new THREE.Vector3(0, 60 * i + angleOffset, -(i + zOffset)));
-            entityQueue.push(new THREE.Vector3(1, 60 * i + angleOffset, -(i + 3 + zOffset)));
+          let rowCount = RandomInt(2, 5);
+          for (let i = 0; i < rowCount; i++) {
+            let coinCount = RandomInt(3, 7);
+            for (let j = 0; j < coinCount; j++) {
+              if (j == 0 || j == coinCount - 1) { AddCoin(angleOffset, -(j + zOffset)); }
+              else { for (let k = -1; k <= 1; k += 2) { AddCoin(15 * k + angleOffset, -(j + zOffset)); } }
+            }
+            if (i < rowCount - 1) {
+              zOffset += coinCount + RandomInt(3, 8);
+              angleOffset += RandomInt(0, 3) * 45 * RandomSign();
+            }
           }
-          zOffset += 6 * length;
+        }
+        break;
+      case 8:
+        {
+          let length = RandomInt(10, 32);
+          let sign = RandomSign();
+          for (let i = 0; i < length; i++) {
+            AddCoin(60 * i * sign + angleOffset, -(i + zOffset));
+            AddSpike(60 * i * sign + angleOffset, -(i + 3 + zOffset));
+          }
+          zOffset += length + 3;
+          angleOffset += 60 * length * sign;
         }
         break;
       default:
@@ -184,7 +208,7 @@ function Update(_dt) {
             // Collision Checks
             let playerCheckPos = new THREE.Vector3(Math.sin(player.GetAngle() * Math.PI / 180), Math.cos(player.GetAngle() * Math.PI / 180), 4);
             for (let i = entityQueue.length - 1; i >= 0; i--) {
-              if (playerCheckPos.distanceTo(new THREE.Vector3(Math.sin(entityQueue[i].y * Math.PI / 180), Math.cos(entityQueue[i].y * Math.PI / 180), entityQueue[i].z)) < 0.25) {
+              if (playerCheckPos.distanceTo(new THREE.Vector3(Math.sin(entityQueue[i].y * Math.PI / 180), Math.cos(entityQueue[i].y * Math.PI / 180), entityQueue[i].z)) < (entityQueue[i].x == 1 ? 0.25 : 0.5)) {
                 if (entityQueue[i].x == 1) {
                   currentState = States.GameOver;
                 }
