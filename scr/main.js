@@ -269,7 +269,7 @@ function Draw() {
       // Draw Pipe
       pipe.DrawPipe(DrawLine);
       // Draw Player
-      pipe.DrawPlayer(player.GetAngle(), stepTimer >= 0 ? GetPlayerWinZ(stepTimer) : player.GetAngle(), DrawLine);
+      pipe.DrawPlayer(player.GetAngle(), stepTimer >= 0 ? GetPlayerWinZ(stepTimer) : 4, DrawLine);
       break;
 
   }
