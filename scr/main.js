@@ -104,8 +104,8 @@ function GenerateStage() {
             let coinCount = RandomInt(3, 7);
             for (let j = 0; j < coinCount; j++) { AddCoin(angleOffset, -(j + zOffset)); }
             if (i < rowCount - 1) {
-              zOffset += coinCount + RandomInt(3, 8);
-              angleOffset += RandomInt(0, 5) > 0 ? RandomInt(1, 4) * 15 * RandomSign() : 0;
+              zOffset += coinCount + RandomInt(3, 7);
+              angleOffset += RandomInt(0, 5) > 0 ? RandomInt(15, 60) * RandomSign() : 0;
             }
             else { zOffset += coinCount; }
           }
@@ -121,8 +121,8 @@ function GenerateStage() {
               else { for (let k = -1; k <= 1; k += 2) { AddCoin(15 * k + angleOffset, -(j + zOffset)); } }
             }
             if (i < rowCount - 1) {
-              zOffset += coinCount + RandomInt(5, 10);
-              angleOffset += RandomInt(0, 5) > 0 ? RandomInt(1, 4) * 20 * RandomSign() : 0;
+              zOffset += coinCount + RandomInt(2, 5);
+              angleOffset += RandomInt(0, 5) > 0 ? RandomInt(30, 90) * RandomSign() : 0;
             }
             else { zOffset += coinCount; }
           }
@@ -174,24 +174,19 @@ function Update(_dt) {
             stepCounter = 1;
           }
           break;
-        // Set Up Gameplay State
-        case 16:
-          stepTimer += _dt;
-          if (stepTimer >= 0.75) {
-            stageIndex = 0;
-            spawnedCoins = 0;
-            collectedCoins = 0;
-            GenerateStage();
-            currentState = States.Playing;
-            stepCounter = 0;
-            stepTimer -= 0.75;
-          }
-          break;
         // Flash Text
         default:
           stepTimer += _dt;
           if (stepTimer >= 0.05) {
             stepCounter++;
+            // Set Up Gameplay State
+            if (stepCounter == 16) {
+              stageIndex = 0;
+              spawnedCoins = 0;
+              collectedCoins = 0;
+              currentState = States.Playing;
+              stepCounter = 0;
+            }
             stepTimer -= 0.05;
           }
           break;
@@ -201,6 +196,14 @@ function Update(_dt) {
     case States.Playing:
       switch (stepCounter) {
         case 0:
+          stepTimer += _dt;
+          if (stepTimer >= 0.75) {
+            GenerateStage();
+            stepCounter++;
+            stepTimer -= 0.75;
+          }
+          break;
+        case 1:
           // Update Pipe
           pipe.UpdatePipe(_dt);
           // Update Player
@@ -237,6 +240,9 @@ function Update(_dt) {
     case States.StageCleared:
       // Update Pipe
       pipe.UpdatePipe(_dt);
+      // Update Player (No Player Input)
+      player.Update(0, false, false, _dt);
+      // Update State Timer
       stepTimer += 2.5 * _dt;
       if (stepTimer >= 5) { }
       break;
@@ -249,7 +255,7 @@ function Draw() {
 
     case States.Playing:
       switch (stepCounter) {
-        case 0:
+        case 1:
           // Draw Pipe
           pipe.DrawPipe(DrawLine);
           // Draw Entities
@@ -273,10 +279,8 @@ function Draw() {
       break;
 
   }
-
   // Render Scene
   renderer.render(scene, camera);
-
 };
 
 function tick() {
