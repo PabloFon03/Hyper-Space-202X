@@ -79,9 +79,19 @@ const player = new Player();
 function GenerateStage() {
   let zOffset = 25;
   let angleOffset = 0;
-  for (let i = 0; i < 48; i++) {
-    entityQueue.push(new THREE.Vector3(0, 60 * i + angleOffset, -(i + zOffset)));
-    entityQueue.push(new THREE.Vector3(1, 60 * i + angleOffset, -(i + 3 + zOffset)));
+  let obstacleId = RandomInt(0, 2);
+  switch (obstacleId) {
+    case 0:
+      break;
+    case 1:
+      for (let i = 0; i < 48; i++) {
+        entityQueue.push(new THREE.Vector3(0, 60 * i + angleOffset, -(i + zOffset)));
+        entityQueue.push(new THREE.Vector3(1, 60 * i + angleOffset, -(i + 3 + zOffset)));
+      }
+      break;
+    default:
+      console.log("Error! Obstacle pattern not defined for case ", obstacleId);
+      break;
   }
 }
 
