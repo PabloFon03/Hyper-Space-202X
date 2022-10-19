@@ -3,6 +3,7 @@ import { CreateEnum } from './EnumUtils.js';
 import { InputManager } from './InputManager.js';
 import { Pipe } from './PipeUtils.js';
 import { Player } from './Player.js';
+// import { Text } from 'troika-three-text';
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -75,15 +76,29 @@ const pipe = new Pipe();
 const entityQueue = [];
 const player = new Player();
 
+function GenerateStage() {
+  let zOffset = 25;
+  let angleOffset = 0;
+  for (let i = 0; i < 48; i++) {
+    entityQueue.push(new THREE.Vector3(0, 60 * i + angleOffset, -(i + zOffset)));
+    entityQueue.push(new THREE.Vector3(1, 60 * i + angleOffset, -(i + 3 + zOffset)));
+  }
+}
+
 const States = CreateEnum([
   "MainMenu",
   "StartUp",
   "Playing",
-  "StageCleared"
+  "StageCleared",
+  "GameOver"
 ]);
-let currentState = States.Playing;
+let currentState = States.MainMenu;
 let stepCounter = 0;
 let stepTimer = 0;
+
+let stageIndex = 0;
+let spawnedCoins = 0;
+let collectedCoins = 0;
 
 function Update(_dt) {
   switch (currentState) {
@@ -101,6 +116,10 @@ function Update(_dt) {
         case 16:
           stepTimer += _dt;
           if (stepTimer >= 0.75) {
+            stageIndex = 0;
+            spawnedCoins = 0;
+            collectedCoins = 0;
+            GenerateStage();
             currentState = States.Playing;
             stepCounter = 0;
             stepTimer -= 0.75;
@@ -126,15 +145,21 @@ function Update(_dt) {
           for (let i = 0; i < entityQueue.length; i++) { entityQueue[i].z += pipe.GetScrollSpeed() * _dt; }
           // Remove Out Of Bounds Entities
           for (let i = entityQueue.length - 1; i >= 0; i--) { if (entityQueue[i].z > 5) { entityQueue.splice(i, 1); } }
-
-          if (entityQueue.length == 0) { entityQueue.push(new THREE.Vector3(1, 30, 4.5)); }
-          while (entityQueue[entityQueue.length - 1].z > -25) { entityQueue.push(new THREE.Vector3(1, entityQueue[entityQueue.length - 1].y + 60, entityQueue[entityQueue.length - 1].z - 1)); }
-          // Update Player
-          player.Update(input.GetHorizontalAxis(), input.PressingBoost(), input.PressingBrakes(), _dt);
-          // Collision Checks
-          for (let i = entityQueue.length - 1; i >= 0; i--) {
-            if (Math.abs(entityQueue[i].z - 4) < 0.5) {
-              entityQueue.splice(i, 1);
+          if (entityQueue.length > 0) {
+            // Update Player
+            player.Update(input.GetHorizontalAxis(), input.PressingBoost(), input.PressingBrakes(), _dt);
+            // Collision Checks
+            let playerCheckPos = new THREE.Vector3(Math.sin(player.GetAngle() * Math.PI / 180), Math.cos(player.GetAngle() * Math.PI / 180), 4);
+            for (let i = entityQueue.length - 1; i >= 0; i--) {
+              if (playerCheckPos.distanceTo(new THREE.Vector3(Math.sin(entityQueue[i].y * Math.PI / 180), Math.cos(entityQueue[i].y * Math.PI / 180), entityQueue[i].z)) < 0.25) {
+                if (entityQueue[i].x == 1) {
+                  currentState = States.GameOver;
+                }
+                else {
+                  collectedCoins++;
+                  entityQueue.splice(i, 1);
+                }
+              }
             }
           }
           break;
@@ -153,8 +178,10 @@ function Draw() {
           // Draw Pipe
           pipe.DrawPipe(DrawLine);
           // Draw Entities
-          for (let i = 0; i < entityQueue.length; i++) { pipe.DrawStar(entityQueue[i].y, entityQueue[i].z, DrawLine); }
-          for (let i = 0; i < entityQueue.length; i++) { pipe.DrawCoin(entityQueue[i].y, entityQueue[i].z + 3, DrawLine); }
+          for (let i = 0; i < entityQueue.length; i++) {
+            if (entityQueue[i].x == 1) { pipe.DrawStar(entityQueue[i].y, entityQueue[i].z, DrawLine); }
+            else { pipe.DrawCoin(entityQueue[i].y, entityQueue[i].z, DrawLine); }
+          }
           // Draw Player
           pipe.DrawPlayer(player.GetAngle(), 4, DrawLine);
           // Render Scene
