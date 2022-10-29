@@ -84,3 +84,8 @@ p {
     top: 85vh;
     left: 85vw;
 }
+
+#GameOver {
+    background-color: #161616a0;
+    z-index: 1;
+}

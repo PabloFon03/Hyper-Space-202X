@@ -256,6 +256,7 @@ let mainHUD = document.querySelector("#HUD");
 let stageDisplay = document.querySelector("#StageIndex");
 let scoreDisplay = document.querySelector("#Score");
 let fpsDisplay = document.querySelector("#FPS");
+let gameOverScreen = document.querySelector("#GameOver");
 
 function AddScore(_amount) {
   score += _amount;
@@ -312,7 +313,7 @@ function Update(_dt) {
           stepTimer += _dt;
           if (stepTimer >= 0.75) {
             GenerateStage();
-            stageDisplay.innerHTML = stageIndex;
+            stageDisplay.innerHTML = stageIndex + 1;
             mainHUD.style.display = 'block';
             pipeRandomizeCooldown = RandomFloat(2, 7);
             stepCounter++;
@@ -348,6 +349,7 @@ function Update(_dt) {
                 // Hit Spike
                 if (entityQueue[i].x == 1) {
                   currentState = States.GameOver;
+                  gameOverScreen.style.display = 'block';
                 }
                 // Hit Coin
                 else {
@@ -385,7 +387,11 @@ function Update(_dt) {
       break;
 
     case States.GameOver:
-      if (input.IsKeyPressed("Space")) { StartGame(); }
+      if (input.IsKeyPressed("Space")) {
+        mainHUD.style.display = 'none';
+        gameOverScreen.style.display = 'none';
+        StartGame();
+      }
       break;
 
   }
