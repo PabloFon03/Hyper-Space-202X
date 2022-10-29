@@ -24,9 +24,13 @@ p {
     position: absolute;
     left: 0;
     top: 0;
-    width: 100%;
-    height: 100%;
+    width: 100vw;
+    height: 100vh;
     display: block;
+}
+
+.StartDisabled {
+    display: none;
 }
 
 #TitleScreen #Title {
@@ -57,4 +61,26 @@ p {
 #TitleScreen div p {
     width: 10vw;
     font-size: 2vh;
+}
+
+#HUD p {
+    font-size: 4vh;
+}
+
+#HUD #StageIndexDisplay {
+    position: absolute;
+    top: 5vh;
+    left: 5vw;
+}
+
+#HUD #ScoreDisplay {
+    position: absolute;
+    top: 5vh;
+    left: 85vw;
+}
+
+#HUD #FPSDisplay {
+    position: absolute;
+    top: 85vh;
+    left: 85vw;
 }

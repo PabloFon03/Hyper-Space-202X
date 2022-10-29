@@ -77,14 +77,12 @@ const entityQueue = [];
 const player = new Player();
 
 let stageIndex = 0;
-let spawnedCoins = 0;
+let missedCoins = 0;
 let collectedCoins = 0;
+let score = 0;
 
 // Add Coin To Entity Queue
-function AddCoin(_angle, _z) {
-  entityQueue.push(new THREE.Vector3(0, _angle, _z));
-  spawnedCoins++;
-}
+function AddCoin(_angle, _z) { entityQueue.push(new THREE.Vector3(0, _angle, _z)); }
 
 // Add Spike To Entity Queue
 function AddSpike(_angle, _z) { entityQueue.push(new THREE.Vector3(1, _angle, _z)); }
@@ -115,7 +113,7 @@ function GenerateStage() {
       angleOffset += 90 * offsetFactor * Math.random() * RandomSign();
     }
     let obstacleId = obstacleIdPool[RandomInt(0, obstacleIdPool.length)];
-    switch (2) {
+    switch (5) {
       // Basic Coin Trail
       case 0:
         {
@@ -254,13 +252,31 @@ let stepTimer = 0;
 
 let titleScreen = document.querySelector("#TitleScreen");
 let mainHUD = document.querySelector("#HUD");
-mainHUD.style.display = 'none';
+let stageDisplay = document.querySelector("#StageIndex");
+let scoreDisplay = document.querySelector("#Score");
+let fpsDisplay = document.querySelector("#FPS");
+
+function AddScore(_amount) {
+  score += _amount;
+  scoreDisplay.innerHTML = score;
+}
 
 function LoadTitleScreen() {
   currentState = States.MainMenu;
   stepCounter = 0;
   stepTimer = 0;
   titleScreen.style.display = 'block';
+}
+
+function StartGame() {
+  stageIndex = 0;
+  collectedCoins = 0;
+  missedCoins = 0;
+  score = 0;
+  currentState = States.Playing;
+  stepCounter = 0;
+  stepTimer = 0;
+  entityQueue.length = 0;
 }
 
 function Update(_dt) {
@@ -282,14 +298,8 @@ function Update(_dt) {
             titleScreen.style.display = stepCounter % 2 == 0 ? 'block' : 'none';
             stepCounter++;
             // Set Up Gameplay State
-            if (stepCounter == 16) {
-              stageIndex = 0;
-              spawnedCoins = 0;
-              collectedCoins = 0;
-              currentState = States.Playing;
-              stepCounter = 0;
-            }
-            stepTimer -= 0.05;
+            if (stepCounter == 16) { StartGame(); }
+            else { stepTimer -= 0.05; }
           }
           break;
       }
@@ -301,6 +311,8 @@ function Update(_dt) {
           stepTimer += _dt;
           if (stepTimer >= 0.75) {
             GenerateStage();
+            stageDisplay.innerHTML = stageIndex;
+            mainHUD.style.display = 'block';
             stepCounter++;
             stepTimer -= 0.75;
           }
@@ -313,7 +325,13 @@ function Update(_dt) {
           // Update Entities
           for (let i = 0; i < entityQueue.length; i++) { entityQueue[i].z += pipe.GetScrollSpeed() * _dt; }
           // Remove Out Of Bounds Entities
-          for (let i = entityQueue.length - 1; i >= 0; i--) { if (entityQueue[i].z > 5) { entityQueue.splice(i, 1); } }
+          for (let i = entityQueue.length - 1; i >= 0; i--) {
+            if (entityQueue[i].z > 5) {
+              // Missed Coin Check
+              if (entityQueue[i].x != 1) { missedCoins++; }
+              entityQueue.splice(i, 1);
+            }
+          }
           // Collision Checks
           if (entityQueue.length > 0) {
             let playerCheckPos = new THREE.Vector3(Math.sin(player.GetAngle() * Math.PI / 180), Math.cos(player.GetAngle() * Math.PI / 180), 4);
@@ -326,6 +344,7 @@ function Update(_dt) {
                 // Hit Coin
                 else {
                   collectedCoins++;
+                  AddScore(10);
                   entityQueue.splice(i, 1);
                 }
               }
@@ -349,10 +368,15 @@ function Update(_dt) {
       stepTimer += 2.5 * _dt;
       if (stepTimer >= 5) {
         stageIndex++;
+        AddScore(250);
         currentState = States.Playing;
         stepCounter = 0;
         stepTimer -= 5;
       }
+      break;
+
+    case States.GameOver:
+      if (input.IsKeyPressed("Space")) { StartGame(); }
       break;
 
   }
@@ -410,11 +434,12 @@ function tick() {
   requestAnimationFrame(tick);
   // Get Delta Time
   let dt = clk.getDelta();
+  // Update FPS Display
+  fpsDisplay.innerHTML = Math.round(1 / dt);
   // Adjust Maximum Time Step
   if (dt > 0.15) { dt = 0.15; }
   // Update Input Manager
   input.Update(dt);
-  console.log(input.PressingDash());
   // Update Scene
   Update(dt);
   // Draw Scene
