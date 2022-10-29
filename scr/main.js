@@ -4,7 +4,6 @@ import { InputManager } from './InputManager.js';
 import { RandomInt, RandomSign } from './MathUtils.js';
 import { Pipe } from './PipeUtils.js';
 import { Player } from './Player.js';
-// import { Text } from 'troika-three-text';
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -77,6 +76,10 @@ const pipe = new Pipe();
 const entityQueue = [];
 const player = new Player();
 
+let stageIndex = 0;
+let spawnedCoins = 0;
+let collectedCoins = 0;
+
 // Add Coin To Entity Queue
 function AddCoin(_angle, _z) {
   entityQueue.push(new THREE.Vector3(0, _angle, _z));
@@ -89,14 +92,31 @@ function AddSpike(_angle, _z) { entityQueue.push(new THREE.Vector3(1, _angle, _z
 function GenerateStage() {
   let zOffset = 25;
   let angleOffset = 0;
-  for (let a = 0; a < 1; a++) {
+  let obstacleIdPool = [];
+  let obstacleCount = 0;
+  switch (stageIndex) {
+    case 0:
+      obstacleCount = 3;
+      obstacleIdPool = [0];
+      break;
+    case 1:
+      obstacleCount = 3;
+      obstacleIdPool = [0, 0, 0, 1];
+      break;
+    default:
+      obstacleCount = RandomInt(10, 15);
+      obstacleIdPool = [8];
+      break;
+  }
+  for (let a = 0; a < obstacleCount; a++) {
     if (a > 0) {
-      let offsetFactor = RandomInt(5, 17);
+      let offsetFactor = RandomInt(5, 12);
       zOffset += offsetFactor;
-      angleOffset += 45 * offsetFactor * Math.random() * RandomSign();
+      angleOffset += 90 * offsetFactor * Math.random() * RandomSign();
     }
-    let obstacleId = RandomInt(0, 2);
-    switch (obstacleId) {
+    let obstacleId = obstacleIdPool[RandomInt(0, obstacleIdPool.length)];
+    switch (2) {
+      // Basic Coin Trail
       case 0:
         {
           let rowCount = RandomInt(2, 5);
@@ -111,6 +131,7 @@ function GenerateStage() {
           }
         }
         break;
+      // Double Coin Trail
       case 1:
         {
           let rowCount = RandomInt(3, 8);
@@ -128,6 +149,78 @@ function GenerateStage() {
           }
         }
         break;
+      // Diamond Coin
+      case 2:
+        {
+          let arrowCount = RandomInt(3, 8);
+          for (let i = 0; i < arrowCount; i++) {
+            for (let j = 0; j < 3; j++) {
+              let startAngleOffset = -15 * (j % 2);
+              for (let k = 0; k < j % 2 + 1; k++) { AddCoin(30 * k + startAngleOffset + angleOffset, -(j + zOffset)); }
+            }
+            if (i < arrowCount - 1) {
+              zOffset += 3 + RandomInt(3, 8);
+              angleOffset += RandomInt(0, 5) > 0 ? RandomInt(30, 90) * RandomSign() : 0;
+            }
+            else { zOffset += 3; }
+          }
+        }
+        break;
+      // Basic Spike Ring
+      case 3:
+        {
+          let ringAmount = RandomInt(1, 7);
+          for (let i = 0; i < ringAmount; i++) {
+            let coinSlot = RandomInt(0, 8);
+            for (let j = 0; j < 8; j++) {
+              let currentAngle = 45 * j + angleOffset;
+              if (j == coinSlot) { AddCoin(currentAngle, -(zOffset)); } else { AddSpike(currentAngle, -(zOffset)); }
+            }
+            if (i < ringAmount - 1) {
+              zOffset += 3 + RandomInt(2, 5);
+              angleOffset += RandomInt(0, 5) > 0 ? RandomInt(30, 75) * RandomSign() : 0;
+            }
+          }
+        }
+        break;
+      // Triple Spike Ring
+      case 4:
+        {
+          let ringSetAmount = RandomInt(1, 10);
+          for (let i = 0; i < ringSetAmount; i++) {
+            let coinSlot = RandomInt(0, 8);
+            for (let j = 0; j < 3; j++) {
+              for (let k = 0; k < 8; k++) {
+                let currentAngle = 45 * k + angleOffset;
+                if (k == coinSlot) { AddCoin(currentAngle, -(zOffset)); } else { AddSpike(currentAngle, -(zOffset)); }
+              }
+              zOffset++;
+            }
+            if (i < ringSetAmount - 1) {
+              zOffset += 3 + RandomInt(0, 3);
+              angleOffset += RandomInt(0, 5) > 0 ? RandomInt(60, 120) * RandomSign() : 0;
+            }
+          }
+        }
+        break;
+      // Slightly Curved Ring Corridor
+      case 5:
+        {
+          let ringAmount = RandomInt(5, 20);
+          let ringAngleOffset = RandomInt(5, 20) * RandomSign();
+          let ringSpikeAmount = RandomInt(2, 6);
+          for (let i = 0; i < ringAmount; i++) {
+            for (let j = 0; j < ringSpikeAmount; j++) {
+              let currentAngle = 360 / ringSpikeAmount * (j + 0.5) + angleOffset;
+              AddSpike(currentAngle, -(zOffset));
+            }
+            AddCoin(angleOffset, -(zOffset));
+            zOffset++;
+            angleOffset += ringAngleOffset;
+          }
+        }
+        break;
+      // Spiral
       case 8:
         {
           let length = RandomInt(10, 32);
@@ -140,6 +233,7 @@ function GenerateStage() {
           angleOffset += 60 * length * sign;
         }
         break;
+      // Undefined ID Error
       default:
         console.log("Error! Obstacle pattern not defined for case ", obstacleId);
         break;
@@ -158,9 +252,16 @@ let currentState = States.MainMenu;
 let stepCounter = 0;
 let stepTimer = 0;
 
-let stageIndex = 0;
-let spawnedCoins = 0;
-let collectedCoins = 0;
+let titleScreen = document.querySelector("#TitleScreen");
+let mainHUD = document.querySelector("#HUD");
+mainHUD.style.display = 'none';
+
+function LoadTitleScreen() {
+  currentState = States.MainMenu;
+  stepCounter = 0;
+  stepTimer = 0;
+  titleScreen.style.display = 'block';
+}
 
 function Update(_dt) {
   switch (currentState) {
@@ -178,6 +279,7 @@ function Update(_dt) {
         default:
           stepTimer += _dt;
           if (stepTimer >= 0.05) {
+            titleScreen.style.display = stepCounter % 2 == 0 ? 'block' : 'none';
             stepCounter++;
             // Set Up Gameplay State
             if (stepCounter == 16) {
@@ -283,6 +385,20 @@ function Draw() {
       pipe.DrawPlayer(player.GetAngle(), stepTimer >= 0 ? GetPlayerWinZ(stepTimer) : 4, DrawLine);
       break;
 
+    case States.GameOver:
+      // Draw Pipe
+      pipe.DrawPipe(DrawLine);
+      // Draw Entities
+      for (let i = 0; i < entityQueue.length; i++) {
+        if (entityQueue[i].z >= -25) {
+          if (entityQueue[i].x == 1) { pipe.DrawStar(entityQueue[i].y, entityQueue[i].z, DrawLine); }
+          else { pipe.DrawCoin(entityQueue[i].y, entityQueue[i].z, DrawLine); }
+        }
+      }
+      // Draw Player
+      pipe.DrawPlayer(player.GetAngle(), 4, DrawLine);
+      break;
+
   }
   // Render Scene
   renderer.render(scene, camera);
@@ -303,4 +419,5 @@ function tick() {
   ResetLinePool();
 };
 
+LoadTitleScreen();
 tick();

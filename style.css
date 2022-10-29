@@ -1,14 +1,23 @@
 body {
-    /* remove margins and scroll bars */
     margin: 0;
     overflow: hidden;
     background-color: black;
 }
 
-#scene-container {
-    /* tell our scene container to take up the full page */
+p {
+    color: white;
+}
+
+.DivUI {
     position: absolute;
+    left: 0;
+    top: 0;
     width: 100%;
     height: 100%;
     display: block;
+}
+
+#TitleScreen p {
+    font-size: 10vh;
+    align-self: center;
 }
