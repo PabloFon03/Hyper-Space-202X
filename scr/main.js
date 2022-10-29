@@ -270,7 +270,7 @@ function Update(_dt) {
       switch (stepCounter) {
         // Wait For User Input
         case 0:
-          if (input.PressingBrakes()) {
+          if (input.IsKeyPressed("Space")) {
             stepTimer = 0;
             stepCounter = 1;
           }
@@ -309,13 +309,13 @@ function Update(_dt) {
           // Update Pipe
           pipe.UpdatePipe(_dt);
           // Update Player
-          player.Update(input.GetHorizontalAxis(), input.PressingBoost(), input.PressingBrakes(), _dt);
+          player.Update(input.GetHorizontalAxis(), input.PressingBrakes(), input.PressingDash(), input.PressingBoost(), _dt);
           // Update Entities
           for (let i = 0; i < entityQueue.length; i++) { entityQueue[i].z += pipe.GetScrollSpeed() * _dt; }
           // Remove Out Of Bounds Entities
           for (let i = entityQueue.length - 1; i >= 0; i--) { if (entityQueue[i].z > 5) { entityQueue.splice(i, 1); } }
+          // Collision Checks
           if (entityQueue.length > 0) {
-            // Collision Checks
             let playerCheckPos = new THREE.Vector3(Math.sin(player.GetAngle() * Math.PI / 180), Math.cos(player.GetAngle() * Math.PI / 180), 4);
             for (let i = entityQueue.length - 1; i >= 0; i--) {
               if (Math.abs(entityQueue[i].z - 4) <= 0.25 && playerCheckPos.distanceTo(new THREE.Vector3(Math.sin(entityQueue[i].y * Math.PI / 180), Math.cos(entityQueue[i].y * Math.PI / 180), entityQueue[i].z)) < (entityQueue[i].x == 1 ? 0.25 : 0.5)) {
@@ -331,6 +331,7 @@ function Update(_dt) {
               }
             }
           }
+          // Set Stage Clear Flag
           else {
             currentState = States.StageCleared;
             stepTimer = -5;
@@ -343,7 +344,7 @@ function Update(_dt) {
       // Update Pipe
       pipe.UpdatePipe(_dt);
       // Update Player (No Player Input)
-      player.Update(0, false, false, _dt);
+      player.Update(0, false, false, false, _dt);
       // Update State Timer
       stepTimer += 2.5 * _dt;
       if (stepTimer >= 5) {
@@ -411,6 +412,9 @@ function tick() {
   let dt = clk.getDelta();
   // Adjust Maximum Time Step
   if (dt > 0.15) { dt = 0.15; }
+  // Update Input Manager
+  input.Update(dt);
+  console.log(input.PressingDash());
   // Update Scene
   Update(dt);
   // Draw Scene

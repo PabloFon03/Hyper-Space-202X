@@ -1,5 +1,16 @@
-body {
+@font-face {
+    src: url('VCR_OSD_MONO_1.001.ttf') format('truetype');
+    font-family: 'VCR_OSD_MONO_1.001';
+    font-weight: normal;
+    font-style: normal;
+}
+
+* {
     margin: 0;
+    font-family: 'VCR_OSD_MONO_1.001', 'Courier New', Courier, monospace;
+}
+
+body {
     overflow: hidden;
     background-color: black;
 }
@@ -17,7 +28,26 @@ p {
     display: block;
 }
 
-#TitleScreen p {
+#TitleScreen #Title {
     font-size: 10vh;
-    align-self: center;
+    position: absolute;
+    top: 30vh;
+    left: 25vw;
+}
+
+#TitleScreen div {
+    position: absolute;
+    top: 65vh;
+    left: 20vw;
+    display: flex;
+    flex-direction: row;
+    width: 60vw;
+    height: 10vh;
+    justify-content: space-evenly;
+}
+
+#TitleScreen div p {
+    width: 10vw;
+    font-size: 2vh;
+    text-align: center;
 }
