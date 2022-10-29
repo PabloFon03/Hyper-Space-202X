@@ -1,4 +1,5 @@
 import * as THREE from '../node_modules/three/build/three.module.js';
+import { RandomFloat, RandomInt, RandomSign } from './MathUtils.js';
 
 export class Pipe {
 
@@ -85,6 +86,8 @@ export class Pipe {
         this.geometryBuffer.length = this.segmentCount + this.sides;
         for (let i = 0; i < this.geometryBuffer.length; i++) { this.geometryBuffer[i] = new THREE.BufferGeometry(); }
     }
+
+    SetCurveFactor(_x, _y) { this.curveFactor.set(_x, _y); }
 
     GetScrollSpeed() { return this.scrollSpeed; }
 
@@ -180,4 +183,41 @@ export class Pipe {
         }
     }
 
+}
+
+export function RandomizePipe(_pipe, _stage) {
+    let modQueue = [];
+    let modAmount = _stage < 5 ? 0 : _stage < 7 ? RandomInt(1, 3) : _stage < 9 ? RandomInt(2, 6) : RandomInt(5, 8);
+    let allMods = [0, 1, 2, 3, 4, 5, 6];
+    for (let i = 0; i < modAmount; i++) {
+        let n = RandomInt(0, allMods.length);
+        modQueue.push(allMods[n]);
+        allMods.splice(n, 1);
+    }
+    for (let i = 0; i < modQueue.length; i++) {
+        switch (modQueue[i]) {
+            case 0:
+                _pipe.SetSides(RandomInt(4, 16));
+                break;
+            case 1:
+                let maxCurveFactor = Math.random() < 0.4 ? 0 : _stage > 9 ? 8 : 3;
+                _pipe.SetCurveFactor(RandomFloat(-maxCurveFactor, maxCurveFactor), RandomFloat(-maxCurveFactor, maxCurveFactor));
+                break;
+            case 2:
+                _pipe.hue = RandomFloat(0, 360);
+                break;
+            case 3:
+                _pipe.hueShift = Math.random() < 0.2 ? 0 : RandomFloat(-150, 150);
+                break;
+            case 4:
+                _pipe.angle = RandomFloat(0, 360);
+                break;
+            case 5:
+                _pipe.angleSpeed = Math.random() < 0.75 ? 0 : RandomFloat(-30, 30);
+                break;
+            case 6:
+                _pipe.segmentAngleOffset = Math.random() < 0.75 ? 0 : RandomFloat(-15, 15);
+                break;
+        }
+    }
 }

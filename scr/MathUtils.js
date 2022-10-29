@@ -12,4 +12,6 @@ export function MoveTowards(_current, _target, _maxDelta) {
 
 export function RandomInt(_min, _max) { return _min + Math.floor(Math.random() * (_max - _min)); }
 
+export function RandomFloat(_min, _max) { return _min + Math.random() * (_max - _min); }
+
 export function RandomSign() { return Math.random() < 0.5 ? -1 : 1; }

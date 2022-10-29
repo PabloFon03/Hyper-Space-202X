@@ -1,8 +1,8 @@
 import * as THREE from '../node_modules/three/build/three.module.js';
 import { CreateEnum } from './EnumUtils.js';
 import { InputManager } from './InputManager.js';
-import { RandomInt, RandomSign } from './MathUtils.js';
-import { Pipe } from './PipeUtils.js';
+import { RandomFloat, RandomInt, RandomSign } from './MathUtils.js';
+import { Pipe, RandomizePipe } from './PipeUtils.js';
 import { Player } from './Player.js';
 
 const scene = new THREE.Scene();
@@ -75,6 +75,8 @@ function GetPlayerWinZ(_t) { return -1.5 * Math.pow(_t, 2) + 1.25 * _t + 4; }
 const pipe = new Pipe();
 const entityQueue = [];
 const player = new Player();
+
+let pipeRandomizeCooldown = 0;
 
 let stageIndex = 0;
 let missedCoins = 0;
@@ -241,7 +243,6 @@ function GenerateStage() {
 
 const States = CreateEnum([
   "MainMenu",
-  "StartUp",
   "Playing",
   "StageCleared",
   "GameOver"
@@ -313,11 +314,18 @@ function Update(_dt) {
             GenerateStage();
             stageDisplay.innerHTML = stageIndex;
             mainHUD.style.display = 'block';
+            pipeRandomizeCooldown = RandomFloat(2, 7);
             stepCounter++;
             stepTimer -= 0.75;
           }
           break;
         case 1:
+          // Update Pipe Randomize Cooldown
+          pipeRandomizeCooldown -= _dt;
+          if (pipeRandomizeCooldown <= 0) {
+            RandomizePipe(pipe, stageIndex + 1);
+            pipeRandomizeCooldown += RandomFloat(1, 5);
+          }
           // Update Pipe
           pipe.UpdatePipe(_dt);
           // Update Player
@@ -369,6 +377,7 @@ function Update(_dt) {
       if (stepTimer >= 5) {
         stageIndex++;
         AddScore(250);
+        mainHUD.style.display = 'none';
         currentState = States.Playing;
         stepCounter = 0;
         stepTimer -= 5;
