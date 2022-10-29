@@ -17,6 +17,7 @@ body {
 
 p {
     color: white;
+    text-align: center;
 }
 
 .DivUI {
@@ -29,25 +30,31 @@ p {
 }
 
 #TitleScreen #Title {
+    width: 100%;
     font-size: 10vh;
     position: absolute;
     top: 30vh;
-    left: 25vw;
+}
+
+#TitleScreen #StartLabel {
+    width: 100%;
+    font-size: 3vh;
+    position: absolute;
+    top: 50vh;
 }
 
 #TitleScreen div {
     position: absolute;
     top: 65vh;
-    left: 20vw;
     display: flex;
     flex-direction: row;
     width: 60vw;
     height: 10vh;
+    padding: 0vh 20vw;
     justify-content: space-evenly;
 }
 
 #TitleScreen div p {
     width: 10vw;
     font-size: 2vh;
-    text-align: center;
 }
