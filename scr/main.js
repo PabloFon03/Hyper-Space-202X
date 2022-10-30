@@ -2,7 +2,7 @@ import * as THREE from '../node_modules/three/build/three.module.js';
 import { CreateEnum } from './EnumUtils.js';
 import { InputManager } from './InputManager.js';
 import { RandomFloat, RandomInt, RandomSign } from './MathUtils.js';
-import { Pipe, RandomizePipe } from './PipeUtils.js';
+import { Pipe } from './PipeUtils.js';
 import { Player } from './Player.js';
 
 const scene = new THREE.Scene();
@@ -259,7 +259,6 @@ function GenerateStage() {
           let totalLenght = 0;
           for (let i = 0; i < lengths.length; i++) {
             let n = i % 2 != 0 ? RandomInt(3, 8) : RandomInt(2, 5);
-            console.log(n);
             lengths[i] = n;
             totalLenght += n;
           }
@@ -317,10 +316,15 @@ let stepTimer = 0;
 
 let titleScreen = document.querySelector("#TitleScreen");
 let mainHUD = document.querySelector("#HUD");
-let stageDisplay = document.querySelector("#StageIndex");
-let scoreDisplay = document.querySelector("#Score");
+let stageDisplay = document.querySelector("#HUD #StageIndex");
+let scoreDisplay = document.querySelector("#HUD #Score");
 let fpsDisplay = document.querySelector("#FPS");
 let gameOverScreen = document.querySelector("#GameOver");
+let gameOverStageDisplay = document.querySelector("#GameOver #StageIndex");
+let gameOverScoreDisplay = document.querySelector("#GameOver #Score");
+let gameOverCollectedCoinsDisplay = document.querySelector("#GameOver #CollectedCoins");
+let gameOverMissedCoinsDisplay = document.querySelector("#GameOver #MissedCoins");
+let gameOverCoinAccuracyDisplay = document.querySelector("#GameOver #Accuracy");
 
 function AddScore(_amount) {
   score += _amount;
@@ -376,10 +380,12 @@ function Update(_dt) {
         case 0:
           stepTimer += _dt;
           if (stepTimer >= 0.75) {
+            player.Reset();
             GenerateStage();
+            pipe.Randomize(-1);
             stageDisplay.innerHTML = stageIndex + 1;
             mainHUD.style.display = 'block';
-            pipeRandomizeCooldown = RandomFloat(2, 7);
+            pipeRandomizeCooldown = RandomFloat(1, 4);
             stepCounter++;
             stepTimer -= 0.75;
           }
@@ -388,8 +394,8 @@ function Update(_dt) {
           // Update Pipe Randomize Cooldown
           pipeRandomizeCooldown -= _dt;
           if (pipeRandomizeCooldown <= 0) {
-            RandomizePipe(pipe, stageIndex + 1);
-            pipeRandomizeCooldown += RandomFloat(1, 5);
+            pipe.Randomize(stageIndex + 1);
+            pipeRandomizeCooldown += RandomFloat(1, 4);
           }
           // Update Pipe
           pipe.UpdatePipe(_dt);
@@ -413,6 +419,11 @@ function Update(_dt) {
                 // Hit Spike
                 if (entityQueue[i].x == 1) {
                   currentState = States.GameOver;
+                  gameOverStageDisplay.innerHTML = stageIndex;
+                  gameOverScoreDisplay.innerHTML = score;
+                  gameOverCollectedCoinsDisplay.innerHTML = collectedCoins;
+                  gameOverMissedCoinsDisplay.innerHTML = missedCoins;
+                  gameOverCoinAccuracyDisplay.innerHTML = missedCoins + collectedCoins > 0 ? Math.round(100 * collectedCoins / (missedCoins + collectedCoins)).toString() + "%" : "---";
                   gameOverScreen.style.display = 'block';
                 }
                 // Hit Coin

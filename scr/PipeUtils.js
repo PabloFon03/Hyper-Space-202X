@@ -12,7 +12,7 @@ export class Pipe {
         // Z-Scroll
         this.zOffset = 0;
         this.scrollSpeed = 5;
-        this.curveFactor = new THREE.Vector2(2, 0);
+        this.curveFactor = new THREE.Vector2(0, 0);
 
         // Polygon Sides
         this.sides = 0;
@@ -23,7 +23,7 @@ export class Pipe {
         // Angle
         this.angle = 0;
         this.angleSpeed = 0;
-        this.segmentAngleOffset = 5;
+        this.segmentAngleOffset = 0;
 
         // Tunnel Material
         this.hue = 0;
@@ -185,41 +185,42 @@ export class Pipe {
         }
     }
 
-}
-
-export function RandomizePipe(_pipe, _stage) {
-    let modQueue = [];
-    let modAmount = _stage < 5 ? 0 : _stage < 7 ? RandomInt(1, 4) : _stage < 9 ? RandomInt(3, 6) : RandomInt(5, 8);
-    let allMods = [0, 1, 2, 3, 4, 5, 6];
-    for (let i = 0; i < modAmount; i++) {
-        let n = RandomInt(0, allMods.length);
-        modQueue.push(allMods[n]);
-        allMods.splice(n, 1);
-    }
-    for (let i = 0; i < modQueue.length; i++) {
-        switch (modQueue[i]) {
-            case 0:
-                _pipe.SetSides(RandomInt(4, 16));
-                break;
-            case 1:
-                let maxCurveFactor = Math.random() < 0.4 ? 0 : _stage > 9 ? 8 : 3;
-                _pipe.SetCurveFactor(RandomFloat(-maxCurveFactor, maxCurveFactor), RandomFloat(-maxCurveFactor, maxCurveFactor));
-                break;
-            case 2:
-                _pipe.hue = RandomFloat(0, 360);
-                break;
-            case 3:
-                _pipe.hueShift = Math.random() < 0.2 ? 0 : RandomFloat(-150, 150);
-                break;
-            case 4:
-                _pipe.angle = RandomFloat(0, 360);
-                break;
-            case 5:
-                _pipe.angleSpeed = Math.random() < 0.75 ? 0 : RandomFloat(-30, 30);
-                break;
-            case 6:
-                _pipe.segmentAngleOffset = Math.random() < 0.75 ? 0 : RandomFloat(-15, 15);
-                break;
+    Randomize(_stage) {
+        let modQueue = [];
+        let modAmount = _stage == -1 ? 7 : _stage < 5 ? 0 : _stage < 7 ? RandomInt(1, 4) : _stage < 9 ? RandomInt(3, 6) : RandomInt(5, 8);
+        let allMods = [0, 1, 2, 3, 4, 5, 6];
+        for (let i = 0; i < modAmount; i++) {
+            let n = RandomInt(0, allMods.length);
+            modQueue.push(allMods[n]);
+            allMods.splice(n, 1);
+        }
+        for (let i = 0; i < modQueue.length; i++) {
+            if (modQueue[i] > 3 && _stage < 7) { continue; }
+            switch (modQueue[i]) {
+                case 0:
+                    this.SetSides(RandomInt(4, 16));
+                    break;
+                case 1:
+                    let maxCurveFactor = Math.random() < 0.4 ? 0 : _stage > 9 ? 8 : 3;
+                    this.SetCurveFactor(RandomFloat(-maxCurveFactor, maxCurveFactor), RandomFloat(-maxCurveFactor, maxCurveFactor));
+                    break;
+                case 2:
+                    this.hue = RandomFloat(0, 360);
+                    break;
+                case 3:
+                    this.hueShift = Math.random() < 0.2 ? 0 : RandomFloat(-150, 150);
+                    break;
+                case 4:
+                    this.angle = RandomFloat(0, 360);
+                    break;
+                case 5:
+                    this.angleSpeed = Math.random() < 0.75 ? 0 : RandomFloat(-30, 30);
+                    break;
+                case 6:
+                    this.segmentAngleOffset = Math.random() < 0.75 ? 0 : RandomFloat(-15, 15);
+                    break;
+            }
         }
     }
+
 }

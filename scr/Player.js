@@ -61,4 +61,10 @@ export class Player {
 
     GetAngle() { return this.angle; }
 
+    Reset() {
+        this.angle = 0;
+        this.speed = 0;
+        this.dashTimer = 0;
+    }
+
 }

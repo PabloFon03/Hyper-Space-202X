@@ -36,17 +36,35 @@
         </div>
     </div>
     <div id="GameOver" class="DivUI StartDisabled">
-        <div id="StageIndexDisplay">
-            <p>- STAGE -</p>
-            <p id="StageIndex">0</p>
+        <div id="Title">
+            <p>- GAME OVER -</p>
         </div>
-        <div id="ScoreDisplay">
-            <p>- SCORE -</p>
-            <p id="Score">0</p>
+        <div id="Row1">
+            <div id="ScoreDisplay">
+                <p>- Final Score -</p>
+                <p id="Score">0</p>
+            </div>
+            <div id="StageIndexDisplay">
+                <p>- Cleared Stages -</p>
+                <p id="StageIndex">0</p>
+            </div>
         </div>
-        <div id="FPSDisplay">
-            <p>[FPS]</p>
-            <p id="FPS">---</p>
+        <div id="Row2">
+            <div id="CollectedCoinsDisplay">
+                <p>Collected Coins</p>
+                <p id="CollectedCoins">0</p>
+            </div>
+            <div id="AccuracyDisplay">
+                <p>Coin Accuracy</p>
+                <p id="Accuracy">0</p>
+            </div>
+            <div id="MissedCoinsDisplay">
+                <p>Missed Coins</p>
+                <p id="MissedCoins">0</p>
+            </div>
+        </div>
+        <div id="Retry">
+            <p>Press Space to Retry</p>
         </div>
     </div>
     <div id="scene-container" class="DivUI"></div>
