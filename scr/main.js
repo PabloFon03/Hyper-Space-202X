@@ -87,15 +87,43 @@ function GenerateStage() {
   switch (stageIndex) {
     case 0:
       obstacleCount = 3;
-      obstacleIdPool = [0];
+      obstacleIdPool = [0, 0, 1, 2];
       break;
     case 1:
+      obstacleCount = 5;
+      obstacleIdPool = [0, 0, 1, 1, 2, 2, 3];
+      break;
+    case 2:
+      obstacleCount = 4;
+      obstacleIdPool = [0, 2, 3, 3, 3, 4];
+      break;
+    case 3:
+      obstacleCount = 5;
+      obstacleIdPool = [2, 3, 3, 4, 4, 4, 5, 6];
+      break;
+    case 4:
+      obstacleCount = 4;
+      obstacleIdPool = [0, 2, 3, 3, 4, 4, 6, 8, 8];
+      break;
+    case 5:
       obstacleCount = 3;
-      obstacleIdPool = [0, 0, 0, 1];
+      obstacleIdPool = [0, 1, 2, 2, 3, 3, 4, 4, 5];
+      break;
+    case 6:
+      obstacleCount = 3;
+      obstacleIdPool = [1, 3, 3, 4, 4, 6, 8, 8, 8];
+      break;
+    case 7:
+      obstacleCount = 3;
+      obstacleIdPool = [0, 3, 5, 6, 7, 7, 7, 9, 9];
+      break;
+    case 8:
+      obstacleCount = 3;
+      obstacleIdPool = [2, 3, 7, 7, 8, 9, 9];
       break;
     default:
-      obstacleCount = RandomInt(10, 15);
-      obstacleIdPool = [8];
+      obstacleCount = stageIndex < 15 ? RandomInt(5, 10) : RandomInt(10, 15);
+      obstacleIdPool = [0, 1, 2, 2, 3, 3, 3, 4, 5, 5, 5, 6, 6, 7, 7, 7, 8, 8, 8, 9, 9, 9];
       break;
   }
   for (let a = 0; a < obstacleCount; a++) {
@@ -105,7 +133,7 @@ function GenerateStage() {
       angleOffset += 90 * offsetFactor * Math.random() * RandomSign();
     }
     let obstacleId = obstacleIdPool[RandomInt(0, obstacleIdPool.length)];
-    switch (8) {
+    switch (obstacleId) {
       // Basic Coin Trail
       case 0:
         {
@@ -149,7 +177,7 @@ function GenerateStage() {
               for (let k = 0; k < j % 2 + 1; k++) { AddCoin(30 * k + startAngleOffset + angleOffset, -(j + zOffset)); }
             }
             if (i < diamondCount - 1) {
-              zOffset += 3 + RandomInt(0, 4);
+              zOffset += 4 + RandomInt(0, 3);
               angleOffset += RandomInt(0, 4) > 0 ? RandomInt(30, 90) * RandomSign() : 0;
             }
             else { zOffset += 3; }
@@ -339,7 +367,7 @@ function LoadTitleScreen() {
 }
 
 function StartGame() {
-  stageIndex = 0;
+  stageIndex = 4;
   collectedCoins = 0;
   missedCoins = 0;
   score = 0;
@@ -394,7 +422,7 @@ function Update(_dt) {
           // Update Pipe Randomize Cooldown
           pipeRandomizeCooldown -= _dt;
           if (pipeRandomizeCooldown <= 0) {
-            pipe.Randomize(stageIndex + 1);
+            pipe.Randomize(stageIndex);
             pipeRandomizeCooldown += RandomFloat(1, 4);
           }
           // Update Pipe
