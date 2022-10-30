@@ -38,16 +38,6 @@ for (let i = 0; i < maxLines; i++) {
   scene.add(linePool[i]);
 }
 
-// Text Pool
-let textCount = 0;
-const maxText = 10;
-const textPool = [maxText];
-for (let i = 0; i < maxText; i++) {
-  textPool[i] = new THREE.Line();
-  textPool[i].visible = false;
-  scene.add(textPool[i]);
-}
-
 function DrawLine(_position, _zRotation, _scale, _geometry, _material) {
   if (lineCount < maxLines) {
     linePool[lineCount].position.copy(_position);
@@ -110,12 +100,12 @@ function GenerateStage() {
   }
   for (let a = 0; a < obstacleCount; a++) {
     if (a > 0) {
-      let offsetFactor = RandomInt(5, 12);
+      let offsetFactor = RandomInt(3, 10);
       zOffset += offsetFactor;
       angleOffset += 90 * offsetFactor * Math.random() * RandomSign();
     }
     let obstacleId = obstacleIdPool[RandomInt(0, obstacleIdPool.length)];
-    switch (5) {
+    switch (8) {
       // Basic Coin Trail
       case 0:
         {
@@ -124,7 +114,7 @@ function GenerateStage() {
             let coinCount = RandomInt(3, 7);
             for (let j = 0; j < coinCount; j++) { AddCoin(angleOffset, -(j + zOffset)); }
             if (i < rowCount - 1) {
-              zOffset += coinCount + RandomInt(3, 7);
+              zOffset += coinCount + RandomInt(2, 5);
               angleOffset += RandomInt(0, 5) > 0 ? RandomInt(15, 60) * RandomSign() : 0;
             }
             else { zOffset += coinCount; }
@@ -152,22 +142,63 @@ function GenerateStage() {
       // Diamond Coin
       case 2:
         {
-          let arrowCount = RandomInt(3, 8);
-          for (let i = 0; i < arrowCount; i++) {
+          let diamondCount = RandomInt(3, 8);
+          for (let i = 0; i < diamondCount; i++) {
             for (let j = 0; j < 3; j++) {
               let startAngleOffset = -15 * (j % 2);
               for (let k = 0; k < j % 2 + 1; k++) { AddCoin(30 * k + startAngleOffset + angleOffset, -(j + zOffset)); }
             }
-            if (i < arrowCount - 1) {
-              zOffset += 3 + RandomInt(3, 8);
-              angleOffset += RandomInt(0, 5) > 0 ? RandomInt(30, 90) * RandomSign() : 0;
+            if (i < diamondCount - 1) {
+              zOffset += 3 + RandomInt(0, 4);
+              angleOffset += RandomInt(0, 4) > 0 ? RandomInt(30, 90) * RandomSign() : 0;
             }
             else { zOffset += 3; }
           }
         }
         break;
-      // Basic Spike Ring
+      // Diamond Spike
       case 3:
+        {
+          let diamondCount = RandomInt(1, 5) * 2 + 1;
+          for (let i = 0; i < diamondCount; i++) {
+            for (let j = 0; j < 3; j++) {
+              let startAngleOffset = -15 * (j % 2);
+              for (let k = 0; k < j % 2 + 1; k++) {
+                let currentAngle = 30 * k + startAngleOffset + angleOffset;
+                if (i % 2 == 0) { AddSpike(currentAngle, -(j + zOffset)); }
+                else {
+                  for (let l = 0; l < 2; l++) { AddSpike(currentAngle + 120 * (l - 0.5), -(j + zOffset)); }
+                  AddCoin(currentAngle, -(j + zOffset));
+                }
+              }
+            }
+            zOffset += 4 + RandomInt(0, 2);
+          }
+        }
+        break;
+      // Telegraphed Spike Ring
+      case 4:
+        {
+          let ringSetAmount = RandomInt(3, 10);
+          for (let i = 0; i < ringSetAmount; i++) {
+            let coinSlot = RandomInt(0, 8);
+            for (let j = 0; j < 3; j++) {
+              for (let k = -j * 1.5; k <= j * 1.5; k++) {
+                let currentAngle = 45 * (coinSlot + k + 4) + angleOffset;
+                AddSpike(currentAngle, -(zOffset));
+              }
+              if (j == 2) { AddCoin(45 * coinSlot + angleOffset, -(zOffset)); }
+              zOffset++;
+            }
+            if (i < ringSetAmount - 1) {
+              zOffset += 3 + RandomInt(0, 3);
+              angleOffset += RandomInt(0, 5) > 0 ? RandomInt(60, 180) * RandomSign() : 0;
+            }
+          }
+        }
+        break;
+      // Single Spike Ring
+      case 5:
         {
           let ringAmount = RandomInt(1, 7);
           for (let i = 0; i < ringAmount; i++) {
@@ -184,7 +215,7 @@ function GenerateStage() {
         }
         break;
       // Triple Spike Ring
-      case 4:
+      case 6:
         {
           let ringSetAmount = RandomInt(1, 10);
           for (let i = 0; i < ringSetAmount; i++) {
@@ -204,7 +235,7 @@ function GenerateStage() {
         }
         break;
       // Slightly Curved Ring Corridor
-      case 5:
+      case 7:
         {
           let ringAmount = RandomInt(5, 20);
           let ringAngleOffset = RandomInt(5, 20) * RandomSign();
@@ -220,8 +251,41 @@ function GenerateStage() {
           }
         }
         break;
-      // Spiral
+      // 3-Lane Cross
       case 8:
+        {
+          let lengths = [];
+          lengths.length = RandomInt(3, 10) * 2 + 1;
+          let totalLenght = 0;
+          for (let i = 0; i < lengths.length; i++) {
+            let n = i % 2 != 0 ? RandomInt(3, 8) : RandomInt(2, 5);
+            console.log(n);
+            lengths[i] = n;
+            totalLenght += n;
+          }
+          if (totalLenght % 2 == 0) { lengths[lengths.length - 1]++; }
+          let zCoin = zOffset;
+          let sign = RandomSign();
+          for (let i = 0; i < lengths.length; i++) {
+            // Coin Row
+            if (i % 2 != 0) {
+              for (let j = 0; j < lengths[i]; j++) {
+                AddCoin(45 * sign + angleOffset, -zCoin);
+                zCoin++;
+              }
+            }
+            // Empty Buffer
+            else {
+              zCoin += lengths[i];
+              if (RandomInt(0, 8) > 0) { sign *= -1; }
+            }
+          }
+          for (let i = 0; i < totalLenght; i += 2) { AddSpike(angleOffset, -(i + zOffset)); }
+          zOffset += totalLenght;
+        }
+        break;
+      // Spiral
+      case 9:
         {
           let length = RandomInt(10, 32);
           let sign = RandomSign();
@@ -229,7 +293,7 @@ function GenerateStage() {
             AddCoin(60 * i * sign + angleOffset, -(i + zOffset));
             AddSpike(60 * i * sign + angleOffset, -(i + 3 + zOffset));
           }
-          zOffset += length + 3;
+          zOffset += length + RandomInt(0, 3);
           angleOffset += 60 * length * sign;
         }
         break;

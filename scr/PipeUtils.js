@@ -1,5 +1,5 @@
 import * as THREE from '../node_modules/three/build/three.module.js';
-import { RandomFloat, RandomInt, RandomSign } from './MathUtils.js';
+import { RandomFloat, RandomInt } from './MathUtils.js';
 
 export class Pipe {
 
@@ -34,6 +34,7 @@ export class Pipe {
         this.material.color = c;
 
         this.starMaterial = new THREE.LineBasicMaterial(0xffffff);
+        this.coinFlashTimer = 0;
 
         // Entity Geometries
         this.playerGeometry = new THREE.BufferGeometry().setFromPoints([
@@ -106,17 +107,18 @@ export class Pipe {
         // Update Scroll
         this.zOffset += this.scrollSpeed * _dt;
         while (this.zOffset >= 1) { this.zOffset -= 1; }
-
         // Update Angle
         this.angle += this.angleSpeed * _dt;
         while (this.angle >= 360) { this.angle -= 360; }
-
         // Update Color Hue
         this.hue += this.hueShift * _dt;
         while (this.hue >= 360) { this.hue -= 360; }
         let c = new THREE.Color();
         c.setHSL(this.hue / 360.0, 1, 0.5);
         this.material.color = c;
+        // Update Coin Flash Timer
+        this.coinFlashTimer += _dt;
+        if (this.coinFlashTimer >= 0.2) { this.coinFlashTimer -= 0.2; }
     }
 
     DrawPipe(_DrawLineFunc) {
@@ -169,7 +171,7 @@ export class Pipe {
         for (let i = 0; i < 3; i++) {
             let p = this.GetSurfacePos(a, 0.75, _z);
             let scale = 1 - 0.25 * i;
-            _DrawLineFunc(p, a, new THREE.Vector3(scale, scale, scale), this.coinGeometries[i], this.starMaterial);
+            _DrawLineFunc(p, a, new THREE.Vector3(scale, scale, scale), this.coinGeometries[i], this.coinFlashTimer < 0.1 ? this.material : this.starMaterial);
         }
     }
 
@@ -187,7 +189,7 @@ export class Pipe {
 
 export function RandomizePipe(_pipe, _stage) {
     let modQueue = [];
-    let modAmount = _stage < 5 ? 0 : _stage < 7 ? RandomInt(1, 3) : _stage < 9 ? RandomInt(2, 6) : RandomInt(5, 8);
+    let modAmount = _stage < 5 ? 0 : _stage < 7 ? RandomInt(1, 4) : _stage < 9 ? RandomInt(3, 6) : RandomInt(5, 8);
     let allMods = [0, 1, 2, 3, 4, 5, 6];
     for (let i = 0; i < modAmount; i++) {
         let n = RandomInt(0, allMods.length);
