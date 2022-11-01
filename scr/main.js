@@ -381,8 +381,14 @@ function StartGame() {
 
 function StageSelectCheatCheck() {
   for (let i = 0; i < 10; i++) {
-    if (input.IsKeyPressed("") || input.IsKeyPressed("")) {
-
+    if (input.IsKeyPressed("Digit" + i) || input.IsKeyPressed("Numpad" + i)) {
+      stageIndex = i;
+      titleScreen.style.display = 'none';
+      pauseMenu.style.display = 'none';
+      mainHUD.style.display = 'none';
+      currentState = States.Playing;
+      stepCounter = 0;
+      stepTimer = 0;
     }
   }
 }
