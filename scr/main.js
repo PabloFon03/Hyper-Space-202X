@@ -335,6 +335,7 @@ function GenerateStage() {
 const States = CreateEnum([
   "MainMenu",
   "Playing",
+  "Paused",
   "StageCleared",
   "GameOver"
 ]);
@@ -347,6 +348,7 @@ let mainHUD = document.querySelector("#HUD");
 let stageDisplay = document.querySelector("#HUD #StageIndex");
 let scoreDisplay = document.querySelector("#HUD #Score");
 let fpsDisplay = document.querySelector("#FPS");
+let pauseMenu = document.querySelector("#Pause");
 let gameOverScreen = document.querySelector("#GameOver");
 let gameOverStageDisplay = document.querySelector("#GameOver #StageIndex");
 let gameOverScoreDisplay = document.querySelector("#GameOver #Score");
@@ -367,7 +369,7 @@ function LoadTitleScreen() {
 }
 
 function StartGame() {
-  stageIndex = 4;
+  stageIndex = 0;
   collectedCoins = 0;
   missedCoins = 0;
   score = 0;
@@ -375,6 +377,14 @@ function StartGame() {
   stepCounter = 0;
   stepTimer = 0;
   entityQueue.length = 0;
+}
+
+function StageSelectCheatCheck() {
+  for (let i = 0; i < 10; i++) {
+    if (input.IsKeyPressed("") || input.IsKeyPressed("")) {
+
+    }
+  }
 }
 
 function Update(_dt) {
@@ -408,9 +418,10 @@ function Update(_dt) {
         case 0:
           stepTimer += _dt;
           if (stepTimer >= 0.75) {
-            player.Reset();
+            entityQueue.length = 0;
             GenerateStage();
             pipe.Randomize(-1);
+            player.Reset();
             stageDisplay.innerHTML = stageIndex + 1;
             mainHUD.style.display = 'block';
             pipeRandomizeCooldown = RandomFloat(1, 4);
@@ -419,6 +430,13 @@ function Update(_dt) {
           }
           break;
         case 1:
+          // Pause Game
+          if (stepTimer < 0) { stepTimer += _dt; }
+          else if (input.IsKeyPressed("Space")) {
+            pauseMenu.style.display = 'block';
+            stepTimer = -0.1;
+            currentState = States.Paused;
+          }
           // Update Pipe Randomize Cooldown
           pipeRandomizeCooldown -= _dt;
           if (pipeRandomizeCooldown <= 0) {
@@ -472,6 +490,20 @@ function Update(_dt) {
       }
       break;
 
+    case States.Paused:
+      if (stepTimer < 0) { stepTimer += _dt; }
+      else {
+        // Unpause Game
+        if (input.IsKeyPressed("Space")) {
+          pauseMenu.style.display = 'none';
+          stepTimer = -0.1;
+          currentState = States.Playing;
+        }
+        // Stage Select Cheat
+        StageSelectCheatCheck();
+      }
+      break;
+
     case States.StageCleared:
       // Update Pipe
       pipe.UpdatePipe(_dt);
@@ -500,25 +532,29 @@ function Update(_dt) {
   }
 };
 
+function DefaultDraw() {
+  // Draw Pipe
+  pipe.DrawPipe(DrawLine);
+  // Draw Entities
+  for (let i = 0; i < entityQueue.length; i++) {
+    if (entityQueue[i].z >= -25) {
+      if (entityQueue[i].x == 1) { pipe.DrawStar(entityQueue[i].y, entityQueue[i].z, DrawLine); }
+      else { pipe.DrawCoin(entityQueue[i].y, entityQueue[i].z, DrawLine); }
+    }
+  }
+  // Draw Player
+  pipe.DrawPlayer(player.GetAngle(), 4, DrawLine);
+}
+
 function Draw() {
   switch (currentState) {
 
     case States.Playing:
-      switch (stepCounter) {
-        case 1:
-          // Draw Pipe
-          pipe.DrawPipe(DrawLine);
-          // Draw Entities
-          for (let i = 0; i < entityQueue.length; i++) {
-            if (entityQueue[i].z >= -25) {
-              if (entityQueue[i].x == 1) { pipe.DrawStar(entityQueue[i].y, entityQueue[i].z, DrawLine); }
-              else { pipe.DrawCoin(entityQueue[i].y, entityQueue[i].z, DrawLine); }
-            }
-          }
-          // Draw Player
-          pipe.DrawPlayer(player.GetAngle(), 4, DrawLine);
-          break;
-      }
+      if (stepCounter == 1) { DefaultDraw(); }
+      break;
+
+    case States.Paused:
+      DefaultDraw();
       break;
 
     case States.StageCleared:
@@ -529,17 +565,7 @@ function Draw() {
       break;
 
     case States.GameOver:
-      // Draw Pipe
-      pipe.DrawPipe(DrawLine);
-      // Draw Entities
-      for (let i = 0; i < entityQueue.length; i++) {
-        if (entityQueue[i].z >= -25) {
-          if (entityQueue[i].x == 1) { pipe.DrawStar(entityQueue[i].y, entityQueue[i].z, DrawLine); }
-          else { pipe.DrawCoin(entityQueue[i].y, entityQueue[i].z, DrawLine); }
-        }
-      }
-      // Draw Player
-      pipe.DrawPlayer(player.GetAngle(), 4, DrawLine);
+      DefaultDraw();
       break;
 
   }

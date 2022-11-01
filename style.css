@@ -85,8 +85,34 @@ p {
     left: 85vw;
 }
 
+#Pause {
+    background-color: #000000a0;
+    z-index: 1;
+}
+
+#Pause #Title {
+    width: 100%;
+    font-size: 5vh;
+    position: absolute;
+    top: 30vh;
+}
+
+#Pause #Resume {
+    width: 100%;
+    font-size: 3vh;
+    position: absolute;
+    top: 60vh;
+}
+
+#Pause #Cheat {
+    width: 100%;
+    font-size: 1.5vh;
+    position: absolute;
+    top: 80vh;
+}
+
 #GameOver {
-    background-color: #161616a0;
+    background-color: #000000a0;
     z-index: 1;
 }
 
