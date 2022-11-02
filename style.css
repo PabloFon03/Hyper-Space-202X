@@ -63,6 +63,27 @@ p {
     font-size: 2vh;
 }
 
+#TitleScreen #SoundCredits {
+    flex-direction: column;
+    width: 25%;
+    font-size: 2vh;
+    position: absolute;
+    top: 85vh;
+    left: -10vw;
+}
+
+#TitleScreen #SoundCredits p {
+    width: 100%;
+}
+
+#TitleScreen #GameAuthor {
+    width: 40%;
+    padding-left: 60%;
+    font-size: 2vh;
+    position: absolute;
+    top: 90vh;
+}
+
 #HUD p {
     font-size: 4vh;
 }

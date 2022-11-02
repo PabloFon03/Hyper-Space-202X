@@ -4,10 +4,15 @@ import { InputManager } from './InputManager.js';
 import { RandomFloat, RandomInt, RandomSign } from './MathUtils.js';
 import { Pipe } from './PipeUtils.js';
 import { Player } from './Player.js';
+import { AudioManager } from './AudioManager.js';
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, 0.1, 1000);
 camera.position.z = 5;
+
+const audioListener = new THREE.AudioListener();
+camera.add(audioListener);
+const audioManager = new AudioManager(audioListener);
 
 let bgColor = new THREE.Color(0x000000);
 scene.background = bgColor;
@@ -424,6 +429,7 @@ function Update(_dt) {
         case 0:
           stepTimer += _dt;
           if (stepTimer >= 0.75) {
+            audioManager.StartBGM();
             entityQueue.length = 0;
             GenerateStage();
             pipe.Randomize(-1);
@@ -470,6 +476,7 @@ function Update(_dt) {
               if (Math.abs(entityQueue[i].z - 4) <= 0.25 && playerCheckPos.distanceTo(new THREE.Vector3(Math.sin(entityQueue[i].y * Math.PI / 180), Math.cos(entityQueue[i].y * Math.PI / 180), entityQueue[i].z)) < (entityQueue[i].x == 1 ? 0.25 : 0.5)) {
                 // Hit Spike
                 if (entityQueue[i].x == 1) {
+                  audioManager.PlaySpikeSFX();
                   currentState = States.GameOver;
                   gameOverStageDisplay.innerHTML = stageIndex;
                   gameOverScoreDisplay.innerHTML = score;
@@ -480,6 +487,7 @@ function Update(_dt) {
                 }
                 // Hit Coin
                 else {
+                  audioManager.PlayCoinSFX();
                   collectedCoins++;
                   AddScore(10);
                   entityQueue.splice(i, 1);
@@ -590,6 +598,8 @@ function tick() {
   if (dt > 0.15) { dt = 0.15; }
   // Update Input Manager
   input.Update(dt);
+  // Update Audio Manager
+  audioManager.Update(dt, input);
   // Update Scene
   Update(dt);
   // Draw Scene
